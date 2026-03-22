@@ -182,6 +182,7 @@ export function createLtmSearchTool(deps: LtmSearchDependencies, ctx?: LtmSearch
       const childSessionKey = parentSessionKey
         ? `${parentSessionKey}!ltm-${crypto.randomUUID().slice(0, 8)}`
         : `ltm-${crypto.randomUUID().slice(0, 8)}`;
+      const idempotencyKey = crypto.randomUUID();
       const sessionFile = path.join(sessionsDir, `${childSessionKey}.jsonl`);
 
       // Extra system prompt with search parameters
@@ -201,6 +202,7 @@ export function createLtmSearchTool(deps: LtmSearchDependencies, ctx?: LtmSearch
           extraSystemPrompt,
           lane: "subagent",
           deliver: false,
+          idempotencyKey,
         });
         runId = result.runId;
       } catch (err) {
