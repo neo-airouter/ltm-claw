@@ -17,7 +17,7 @@ export interface LtmSearchConfig {
 const DEFAULT_CONFIG = {
   retrievalModel: undefined as string | undefined,
   retrievalProvider: undefined as string | undefined,
-  retrievalTimeoutSeconds: 60,
+  retrievalTimeoutSeconds: 120,
   workspaceDir: "/tmp/ltm-retrieval",
 };
 
