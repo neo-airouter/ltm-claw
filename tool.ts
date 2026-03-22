@@ -17,7 +17,7 @@ export interface LtmSearchConfig {
 const DEFAULT_CONFIG = {
   retrievalModel: undefined as string | undefined,
   retrievalProvider: undefined as string | undefined,
-  retrievalTimeoutSeconds: 200, // NOTE: also update in openclaw.plugin.json default if changing
+  retrievalTimeoutSeconds: 200,
   workspaceDir: "/tmp/ltm-retrieval",
 };
 
@@ -38,6 +38,69 @@ function getConfig() {
 
 function getSessionsDir(agentId: string): string {
   return path.join(process.env.HOME!, ".openclaw", "agents", agentId, "sessions");
+}
+
+/** Direct JSONL read — no RPC, no sessions_history, no polling */
+async function waitForSubagentResult(
+  childSessionKey: string,
+  agentId: string,
+  maxPollTimeMs: number,
+  onProgress?: (msg: string) => void,
+): Promise<{ text: string; timedOut: boolean }> {
+  const sessionsDir = getSessionsDir(agentId);
+  const sessionFile = path.join(sessionsDir, `${childSessionKey.split(":").at(-1)}.jsonl`);
+  const pollIntervalMs = 2_000;
+  const startTime = Date.now();
+
+  while (Date.now() - startTime < maxPollTimeMs) {
+    await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+
+    try {
+      if (!fs.existsSync(sessionFile)) continue;
+
+      const lines = fs.readFileSync(sessionFile, "utf8").split("\n").filter(Boolean);
+      if (lines.length === 0) continue;
+
+      // Look for the last assistant message with actual text content
+      const assistantMessages = lines
+        .map((line) => {
+          try {
+            const entry = JSON.parse(line);
+            if (entry.type !== "message") return null;
+            const msg = entry.message;
+            if (msg?.role !== "assistant") return null;
+            const content = msg.content ?? [];
+            if (!Array.isArray(content)) return null;
+            const textBlocks = content.filter(
+              (c: unknown) => typeof c === "object" && (c as { type?: string }).type === "text",
+            );
+            if (textBlocks.length === 0) return null;
+            const text = textBlocks
+              .map((c: unknown) => (c as { text?: string }).text ?? "")
+              .join("\n")
+              .trim();
+            if (!text) return null;
+            return { text, ended: entry.endedAt ?? entry.message?.endedAt };
+          } catch {
+            return null;
+          }
+        })
+        .filter(Boolean) as Array<{ text: string; ended?: number }>;
+
+      if (assistantMessages.length > 0) {
+        return { text: assistantMessages[assistantMessages.length - 1].text, timedOut: false };
+      }
+    } catch {
+      // keep polling
+    }
+
+    if (onProgress) onProgress("...");
+  }
+
+  return {
+    text: `Search timed out after ${Math.round(maxPollTimeMs / 1000)}s.`,
+    timedOut: true,
+  };
 }
 
 export const LtmSearchSchema = Type.Object(
@@ -76,7 +139,7 @@ type AgentToolResult<T> = {
   details: T;
 };
 
-/** Gateway RPC call — mirrors lossless-claw's CallGatewayFn */
+/** Gateway RPC call */
 type CallGatewayFn = (params: {
   method: string;
   params?: Record<string, unknown>;
@@ -125,7 +188,7 @@ export function createLtmSearchTool(
             {
               type: "text",
               text: JSON.stringify(
-                { status: "sessions directory not found", sessionsDir },
+                { status: "error", error: "sessions directory not found", sessionsDir },
                 null,
                 2,
               ),
@@ -149,95 +212,67 @@ export function createLtmSearchTool(
         return syncGrep(sessionsDir, currentSessionFile, input.query, maxAgeDays, input);
       }
 
-      // Step 1: Spawn subagent via api.runtime.subagent.run()
-      // Requires OpenClaw with withGatewayRequestScope fix (in main since commit a1520d70,
-      // coming in next release after 2026.3.13). Falls back to sync grep if this fails.
-      let runId = "";
+      // Spawn subagent via sessions_spawn (delivers result back to parent automatically)
+      let childId = "";
       try {
         const result = await deps.callGateway({
-          method: "agent",
+          method: "sessions_spawn",
           params: {
-            message: systemPrompt,
+            task: systemPrompt,
+            label: "ltm-search",
+            runtime: "subagent",
             sessionKey: childSessionKey,
-            deliver: false,
-            lane: "subagent",
-            idempotencyKey: crypto.randomUUID(),
-            extraSystemPrompt: `\n\n## Search Parameters\nSessions directory: ${sessionsDir}\nQuery: ${input.query}\nmaxAgeDays: ${maxAgeDays}\nExclude current session file: ${currentSessionFile}`,
+            extraSystemPrompt: `## Search Parameters\nSessions directory: ${sessionsDir}\nQuery: ${input.query}\nmaxAgeDays: ${maxAgeDays}\nExclude current session file: ${currentSessionFile}`,
+            delivery: { mode: "none" },
           },
-          timeoutMs: 5_000,
+          timeoutMs: 10_000,
         });
-        runId = (result as { runId?: string })?.runId ?? "";
+        const r = result as { childSessionKey?: string; runId?: string; status?: string; error?: string };
+        if (r?.status === "error") {
+          return {
+            content: [{ type: "text", text: `Subagent spawn failed: ${r.error}` }],
+            details: input,
+          };
+        }
+        childId = r?.childSessionKey ?? "";
       } catch (err) {
         return syncGrep(sessionsDir, currentSessionFile, input.query, maxAgeDays, input);
       }
 
-      if (!runId) {
+      if (!childId) {
         return syncGrep(sessionsDir, currentSessionFile, input.query, maxAgeDays, input);
       }
 
-      // Step 2: Poll sessions_history on child session until subagent finishes
-      const pollIntervalMs = 2_000;
-      const maxPollTimeMs = cfg.retrievalTimeoutSeconds * 1_000;
-      const startTime = Date.now();
+      // Poll the subagent's session file directly — no sessions_history RPC, no pollution
+      const result = await waitForSubagentResult(
+        childId,
+        agentId,
+        cfg.retrievalTimeoutSeconds * 1000,
+      );
 
-      while (Date.now() - startTime < maxPollTimeMs) {
-        await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
-
-        try {
-          const sessionResult = await deps.callGateway({
-            method: "sessions_history",
-            params: { sessionKey: childSessionKey, limit: 20, includeTools: false },
-            timeoutMs: 10_000,
-          });
-
-          const messages = (sessionResult as { messages?: unknown[] })?.messages ?? [];
-          // Check for a completed assistant response with text content (not just tool calls)
-          const hasResult = messages.some((m) => {
-            const msg = m as { type?: string; message?: { role?: string; content?: unknown[] } };
-            if (msg.type !== "message" || msg.message?.role !== "assistant") return false;
-            const content = msg.message?.content ?? [];
-            return content.some((c) => (c as { type?: string; text?: string })?.type === "text" && (c as { text?: string }).text?.length > 0);
-          });
-          if (!hasResult) continue;
-
-          const readableResults = messages
-            .map((m) => {
-              const msg = m as { type?: string; message?: { role?: string; content?: unknown[] } };
-              if (msg.type !== "message" || msg.message?.role !== "assistant") return null;
-              const content = msg.message.content ?? [];
-              return content
-                .filter((c: unknown) => typeof c === "object" && (c as { type?: string }).type === "text")
-                .map((c: unknown) => (c as { text?: string }).text ?? "")
-                .join("\n")
-                .trim();
-            })
-            .filter(Boolean);
-
-          return {
-            content: [
-              {
-                type: "text",
-                text: readableResults.join("\n\n") || "search completed but returned no readable output",
-              },
-            ],
-            details: input,
-          };
-        } catch {
-          // Keep polling
-        }
+      if (result.timedOut) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(
+                {
+                  status: "timeout",
+                  childSessionKey: childId,
+                  maxAgeDays,
+                  query: input.query,
+                },
+                null,
+                2,
+              ),
+            },
+          ],
+          details: input,
+        };
       }
 
       return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify(
-              { status: "timeout", runId, maxAgeDays, query: input.query },
-              null,
-              2,
-            ),
-          },
-        ],
+        content: [{ type: "text", text: result.text }],
         details: input,
       };
     },
@@ -246,7 +281,7 @@ export function createLtmSearchTool(
 
 /**
  * Fallback: synchronous grep across session files.
- * Used when subagent spawning is not available (pre-fix OpenClaw).
+ * Used when subagent spawning is not available.
  */
 function syncGrep(
   sessionsDir: string,
