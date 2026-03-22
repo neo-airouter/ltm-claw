@@ -17,6 +17,8 @@ See `ROADMAP.md` for milestones.
 
 v1 has no external dependencies (no SQLite, no embeddings). Just the subagent grep pipeline.
 
+**Host requirements:** `python3` and `jq` must be available in the PATH for the subagent grep fallback. Install with `apt install python3 jq` (or equivalent).
+
 ```bash
 cd ~/.openclaw/workspace/projects
 git clone https://github.com/airouter-ch/ltm-claw.git
