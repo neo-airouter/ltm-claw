@@ -17,7 +17,7 @@ export interface LtmSearchConfig {
 const DEFAULT_CONFIG = {
   retrievalModel: undefined as string | undefined,
   retrievalProvider: undefined as string | undefined,
-  retrievalTimeoutSeconds: 200,
+  retrievalTimeoutSeconds: 200, // NOTE: also update in openclaw.plugin.json default if changing
   workspaceDir: "/tmp/ltm-retrieval",
 };
 
@@ -191,7 +191,14 @@ export function createLtmSearchTool(
           });
 
           const messages = (sessionResult as { messages?: unknown[] })?.messages ?? [];
-          if (messages.length === 0) continue;
+          // Check for a completed assistant response with text content (not just tool calls)
+          const hasResult = messages.some((m) => {
+            const msg = m as { type?: string; message?: { role?: string; content?: unknown[] } };
+            if (msg.type !== "message" || msg.message?.role !== "assistant") return false;
+            const content = msg.message?.content ?? [];
+            return content.some((c) => (c as { type?: string; text?: string })?.type === "text" && (c as { text?: string }).text?.length > 0);
+          });
+          if (!hasResult) continue;
 
           const readableResults = messages
             .map((m) => {
