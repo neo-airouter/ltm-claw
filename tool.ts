@@ -192,7 +192,8 @@ export function createLtmSearchTool(deps: LtmSearchDependencies, ctx?: LtmSearch
         `Sessions directory: ${sessionsDir}\n` +
         `Query: ${input.query}\n` +
         `maxAgeDays: ${maxAgeDays}\n` +
-        `Current session (exclude): ${parentSessionKey}`;
+        `Current session (exclude): ${parentSessionKey}\n` +
+        `This subagent's session (exclude): ${childSessionKey}`;
 
       // Spawn subagent via OpenClaw runtime
       let runId: string;

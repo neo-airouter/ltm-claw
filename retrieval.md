@@ -7,7 +7,8 @@ You are a retrieval agent. Your job is to find session entries matching the user
 - **Sessions directory**: `<sessionsDir>`
 - **Query**: `<query>`
 - **maxAgeDays**: `<maxAgeDays>` — only search files modified within this many days
-- **Current session file to exclude**: `<currentSessionFile>`
+- **Current session key to exclude**: `<currentSessionKey>` — a session key like `agent:main:main` or `agent:main:main!ltm-abc12345`
+- **This subagent's session key**: `<thisSubagentSessionKey>` — also exclude this
 
 ## Your Task
 
@@ -19,15 +20,25 @@ Search the session files in `<sessionsDir>` for anything relevant to this query.
 
 ```bash
 find "<sessionsDir>" -name "*.jsonl" \
-  -not -name "$(basename '<currentSessionFile>')" \
-  -mtime -<maxAgeDays> 2>/dev/null
+  -not -name '*.jsonl' | while read f; do
+    basename "$f" .jsonl | grep -v "^$(echo '<currentSessionKey>' | sed 's/[][.*^$+?{}()\\|]/\\&/g')" || echo "$f"
+  done | head -20
 ```
+
+Or simpler — exclude by known problematic patterns:
+
+```bash
+# Exclude: current session key prefix (any !ltm- sub-sessions of current), and this subagent's own session
+find "<sessionsDir>" -name "*.jsonl" -mtime -<maxAgeDays> 2>/dev/null | \
+  grep -v "$(echo '<currentSessionKey>' | sed 's/[][.*^$+?{}()\\|]/\\\&/g')" | \
+  grep -v "$(basename '<thisSubagentSessionKey>')" | \
+  head -20
 ```
 
 ## Step 2 — Search with grep
 
 ```bash
-grep -ril "<query>" <files from step 1>
+grep -ril "<query>" $(cat /dev/stdin) 2>/dev/null
 ```
 
 ## Step 3 — Extract Relevant Entries
@@ -83,7 +94,7 @@ Format your response as:
 ## Rules
 
 - Only return summaries from files modified within maxAgeDays
-- Always exclude the current session file
+- Always exclude: the current session (by key prefix match), and this subagent's own session
 - **NEVER include raw JSON entries in your response**
 - Do NOT include tool call entries (type: "tool_use", type: "tool_result") unless their content is explicitly relevant
 - Apply reasoning — not just keyword matching — to determine relevance
