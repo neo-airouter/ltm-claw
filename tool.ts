@@ -1,5 +1,12 @@
-import { Type } from "@sinclair/typebox";
-import type { TSchema } from "@sinclair/typebox";
+// Replaced @sinclair/typebox with inline schema to avoid runtime dependency
+// (only used for tool definition, not validation)
+type TSchema = Record<string, unknown>;
+const Type = {
+  Object: (schema: Record<string, unknown>) => schema,
+  String: (opts?: Record<string, unknown>) => ({ type: "string", ...opts }),
+  Number: (opts?: Record<string, unknown>) => ({ type: "number", ...opts }),
+  Optional: (s: unknown) => s,
+};
 import crypto from "node:crypto";
 import * as fs from "fs";
 import * as path from "path";
