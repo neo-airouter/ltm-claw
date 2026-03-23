@@ -108,6 +108,21 @@ type AgentToolResult<T> = {
  * Extract assistant text from a session JSONL file.
  * Reads the file directly — no sessions_history RPC needed.
  */
+/**
+ * Look up a session's actual .jsonl file path from the sessions index.
+ * OpenClaw stores sessions by UUID, not by sessionKey name.
+ */
+function resolveSessionFile(sessionsDir: string, sessionKey: string): string | null {
+  const indexPath = path.join(sessionsDir, "sessions.json");
+  if (!fs.existsSync(indexPath)) return null;
+  try {
+    const index = JSON.parse(fs.readFileSync(indexPath, "utf8"));
+    const entry = index[sessionKey];
+    if (entry?.sessionFile) return entry.sessionFile as string;
+  } catch { /* skip */ }
+  return null;
+}
+
 function extractAssistantTextFromSession(sessionFile: string): string | null {
   if (!fs.existsSync(sessionFile)) return null;
 
@@ -205,7 +220,7 @@ export function createLtmSearchTool(deps: LtmSearchDependencies, ctx?: LtmSearch
           message: systemPrompt,
           extraSystemPrompt,
           lane: "subagent",
-          deliver: false, // async; we poll session file directly, no channel announce needed
+          deliver: true,  // blocks until subagent finishes; result announced to parent session
           idempotencyKey,
         });
         runId = result.runId;
@@ -233,10 +248,15 @@ export function createLtmSearchTool(deps: LtmSearchDependencies, ctx?: LtmSearch
       });
 
       if (waitResult.status === "ok") {
-        // Subagent finished — extract result from session file
-        const text = extractAssistantTextFromSession(sessionFile);
-        if (text) {
-          return { content: [{ type: "text", text }], details: input };
+        // Subagent finished — resolve the actual session file (OpenClaw uses UUIDs, not sessionKey names)
+        const actualSessionFile = resolveSessionFile(sessionsDir, childSessionKey)
+          ?? (fs.existsSync(sessionFile) ? sessionFile : null);
+        console.error(`[ltm-search] waitForRun ok, session file: ${actualSessionFile ?? 'not found'}`);
+        if (actualSessionFile) {
+          const text = extractAssistantTextFromSession(actualSessionFile);
+          if (text) {
+            return { content: [{ type: "text", text }], details: input };
+          }
         }
         // Session file empty even though run completed — try live messages
         try {
