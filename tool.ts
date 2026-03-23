@@ -205,7 +205,7 @@ export function createLtmSearchTool(deps: LtmSearchDependencies, ctx?: LtmSearch
           message: systemPrompt,
           extraSystemPrompt,
           lane: "subagent",
-          deliver: true,  // blocks until subagent finishes
+          deliver: false, // async; we poll session file directly, no channel announce needed
           idempotencyKey,
         });
         runId = result.runId;
