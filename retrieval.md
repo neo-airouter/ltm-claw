@@ -22,6 +22,7 @@ find "<sessionsDir>" -name "*.jsonl" \
   -not -name "$(basename '<currentSessionFile>')" \
   -mtime -<maxAgeDays> 2>/dev/null
 ```
+```
 
 ## Step 2 — Search with grep
 

@@ -37,9 +37,9 @@
 ## Storage Layout
 
 ```
-~/.openclaw/ltm-claw/                  ← root, never inside ~/.openclaw/agents/ or ~/.openclaw/workspace/
-├── .ltm-claw-root                      # Marker file — identifies this as an ltm-claw install
-└── <agentId>-memory-graph.db           # SQLite DB per agent (flat, not nested)
+~/.openclaw/ltm-claw/                  ← root (v2+), never inside ~/.openclaw/agents/ or ~/.openclaw/workspace/
+└── <agentId>-memory-graph.db           # SQLite DB per agent (v2+, flat structure)
+
 ```
 
 - **No pollution of OpenClaw's own directories**
@@ -401,18 +401,13 @@ Production-derived constants from high-scale systems (RedPlanet, 10M+ nodes):
 
 Research inputs used in this spec:
 
-1. **Evo-Memory (DeepMind, 2025)** — agents benefit from refine-and-prune, not just accumulate. Correction chains and self-evolution are the primary mechanism. *(cited in r/AIMemory discussions)*
+1. **Evo-Memory (DeepMind, 2025)** — agents benefit from refine-and-prune, not just accumulate. Correction chains and self-evolution are the primary mechanism.
 2. **Penfield** — typed memories (11 categories), knowledge graph (24 relationship types), agent-managed self-evolution, hybrid search. Cloud-hosted. *(original inspiration, not a public paper)*
-3. **RedPlanet Memory System (2025)** — 10M+ node production knowledge graph. Key insights: reified triples, async graph resolution, sparse LLM output, BFS depth pruning (0.3/0.65 thresholds), hierarchical search weighting. *(r/singularity)*
-4. **Mem0** — universal memory layer for agents, hybrid storage + graph. Inspiration for typed categories. *(r/AIMemory)*
-5. **Zep** — bi-temporal knowledge graph (when something happened vs when the system learned it). Inspiration for temporal modeling deferral. *(r/AIMemory)*
-6. **Supermemory** — unified data model for personal memory, privacy-first. *(r/AIMemory)*
-7. **LoCoMo-Plus benchmark** — graph-based memory scored 93.3% vs 45.7% for Gemini 2.5 Pro 1M context vs 29.8% for standard RAG. *(r/AIMemory)*
-- [ ] `ltm_reflect` + `ltm_should_reflect` — v4
-- [ ] Weekly hygiene pass (scheduled reflection task, not cron)
-- [ ] Session-start auto-recall integration
-- [ ] Cross-agent memory sharing (explicit design decision)
-- [ ] Agent rename migration (rename DB file when agent is renamed)
+3. **RedPlanet Memory System (2025)** — 10M+ node production knowledge graph. Key insights: reified triples, async graph resolution, sparse LLM output, BFS depth pruning (0.3/0.65 thresholds), hierarchical search weighting.
+4. **Mem0** — universal memory layer for agents, hybrid storage + graph. Inspiration for typed categories.
+5. **Zep** — bi-temporal knowledge graph (when something happened vs when the system learned it). Inspiration for temporal modeling deferral.
+6. **Supermemory** — unified data model for personal memory, privacy-first.
+7. **LoCoMo-Plus benchmark** — graph-based memory scored 93.3% vs 45.7% for Gemini 2.5 Pro 1M context vs 29.8% for standard RAG.
 
 ---
 

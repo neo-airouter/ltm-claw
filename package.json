@@ -30,7 +30,9 @@
     "openclaw": "*"
   },
   "openclaw": {
-    "extensions": ["./index.ts"]
+    "extensions": [
+      "./index.ts"
+    ]
   },
   "publishConfig": {
     "access": "public"
@@ -42,5 +44,8 @@
   "homepage": "https://github.com/airouter-ch/ltm-claw#readme",
   "bugs": {
     "url": "https://github.com/airouter-ch/ltm-claw/issues"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
   }
 }

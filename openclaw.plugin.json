@@ -8,22 +8,6 @@
     "workspaceDir": {
       "label": "Workspace Directory",
       "help": "Clean directory the subagent works in; recreated on plugin load"
-    },
-    "retrievalModel": {
-      "label": "Retrieval Model",
-      "help": "Model for the retrieval subagent (v2+); leave blank for gateway default"
-    },
-    "retrievalProvider": {
-      "label": "Retrieval Provider",
-      "help": "Provider for the retrieval subagent (v2+); leave blank for gateway default"
-    },
-    "embeddingUrl": {
-      "label": "Embedding URL (v2+)",
-      "help": "Local llama-server URL for embeddings (default: http://127.0.0.1:8001)"
-    },
-    "embeddingModel": {
-      "label": "Embedding Model (v2+)",
-      "help": "Embedding model name (default: then/qwen3-embedding-0.6b)"
     }
   },
   "configSchema": {
@@ -38,23 +22,7 @@
       "workspaceDir": {
         "type": "string",
         "description": "Workspace directory for subagent; recreated on plugin load",
-        "default": "/tmp/ltm-retrieval"
-      },
-      "retrievalModel": {
-        "type": "string",
-        "description": "Model for the retrieval subagent (v2+). Omit to use gateway default."
-      },
-      "retrievalProvider": {
-        "type": "string",
-        "description": "Provider for the retrieval subagent (v2+). Omit to use gateway default."
-      },
-      "embeddingUrl": {
-        "type": "string",
-        "description": "Local llama-server URL for embedding generation (v2+). Default: http://127.0.0.1:8001"
-      },
-      "embeddingModel": {
-        "type": "string",
-        "description": "Embedding model name (v2+). Default: then/qwen3-embedding-0.6b"
+        "default": "/tmp/ltm-claw"
       }
     }
   }

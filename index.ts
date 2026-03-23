@@ -4,13 +4,13 @@ import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
 import { createLtmSearchTool, setConfig, type LtmSearchConfig } from "./tool.js";
 import { logStartupBannerOnce } from "./startup-banner-log.js";
 
-const DEFAULT_WORKSPACE_DIR = "/tmp/ltm-retrieval";
+const DEFAULT_WORKSPACE_DIR = "/tmp/ltm-claw";
 
 const ltmSearchPlugin = {
   id: "ltm-claw",
   name: "LTM Claw",
   description:
-    "Agent-managed long-term memory — session search, typed memories, knowledge graph",
+    "Agent-managed long-term memory — session grep search (v1). v2+: typed memories, hybrid search, knowledge graph.",
 
   configSchema: {
     parse(value: unknown) {
@@ -19,10 +19,6 @@ const ltmSearchPlugin = {
           ? (value as Record<string, unknown>)
           : {};
       return {
-        retrievalModel:
-          typeof raw.retrievalModel === "string" ? raw.retrievalModel : undefined,
-        retrievalProvider:
-          typeof raw.retrievalProvider === "string" ? raw.retrievalProvider : undefined,
         retrievalTimeoutSeconds:
           typeof raw.retrievalTimeoutSeconds === "number" ? raw.retrievalTimeoutSeconds : 200,
         workspaceDir:

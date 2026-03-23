@@ -17,31 +17,39 @@ See `ROADMAP.md` for milestones.
 
 v1 has no external dependencies (no SQLite, no embeddings). Just the subagent grep pipeline.
 
-**Host requirements:** `python3` and `jq` must be available in the PATH for the subagent grep fallback. Install with `apt install python3 jq` (or equivalent).
+**Host requirements:** `python3` and `jq` must be available in the PATH. Install with `apt install python3 jq` (or equivalent).
+
+Use OpenClaw's plugin installer (recommended):
 
 ```bash
-cd ~/.openclaw/workspace/projects
-git clone https://github.com/airouter-ch/ltm-claw.git
-cd ltm-claw
-npm install
+openclaw plugins install @airouter.ch/ltm-claw
 ```
 
-Configure in OpenClaw:
+If you're running from a local OpenClaw checkout, use:
+
+```bash
+pnpm openclaw plugins install @airouter.ch/ltm-claw
+```
+
+Configure in OpenClaw (`~/.openclaw/openclaw.json`):
+
 ```json
 {
   "plugins": {
-    "entries": [{
-      "id": "ltm-claw",
-      "path": "/home/chris/.openclaw/workspace/projects/ltm-claw"
-    }]
-  },
-  "ltm-claw": {
-    "retrievalTimeoutSeconds": 60
+    "entries": {
+      "ltm-claw": {
+        "enabled": true,
+        "config": {
+          "retrievalTimeoutSeconds": 60,
+          "workspaceDir": "/tmp/ltm-claw"
+        }
+      }
+    }
   }
 }
 ```
 
-Restart OpenClaw. The plugin creates `~/.openclaw/ltm-claw/.ltm-claw-root` on first load.
+Restart OpenClaw. The plugin creates `/tmp/ltm-claw` on first load. This is the subagent's scratch directory — kept empty so the subagent doesn't load any workspace files, keeping it fast.
 
 ## Install — v2 (future)
 
@@ -60,7 +68,7 @@ v2 requires a local embedding service: llama-server with Qwen3-Embedding on port
 
 ## Storage
 
-- v1: no DB, just `~/.openclaw/ltm-claw/.ltm-claw-root` marker
+- v1: no DB, just `/tmp/ltm-claw` scratch directory for the subagent
 - v2+: one SQLite DB per agent at `~/.openclaw/ltm-claw/<agentId>-memory-graph.db`
 - WAL mode enabled
 - Completely outside OpenClaw's own directories

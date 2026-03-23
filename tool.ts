@@ -8,17 +8,13 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export interface LtmSearchConfig {
-  retrievalModel?: string | null;
-  retrievalProvider?: string | null;
   retrievalTimeoutSeconds?: number;
   workspaceDir?: string;
 }
 
 const DEFAULT_CONFIG = {
-  retrievalModel: undefined as string | undefined,
-  retrievalProvider: undefined as string | undefined,
-  retrievalTimeoutSeconds: 200,
-  workspaceDir: "/tmp/ltm-retrieval",
+  retrievalTimeoutSeconds: 60,
+  workspaceDir: "/tmp/ltm-claw",
 };
 
 let _cfg: Partial<LtmSearchConfig> = {};
@@ -29,8 +25,6 @@ export function setConfig(cfg: Partial<LtmSearchConfig>) {
 
 function getConfig() {
   return {
-    retrievalModel: _cfg.retrievalModel ?? DEFAULT_CONFIG.retrievalModel,
-    retrievalProvider: _cfg.retrievalProvider ?? DEFAULT_CONFIG.retrievalProvider,
     retrievalTimeoutSeconds:
       _cfg.retrievalTimeoutSeconds ?? DEFAULT_CONFIG.retrievalTimeoutSeconds,
     workspaceDir: _cfg.workspaceDir ?? DEFAULT_CONFIG.workspaceDir,

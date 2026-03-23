@@ -7,7 +7,7 @@
 
 ## v1.0 — Session History Search (✅ DONE)
 
-**Status:** Code exists in `tool.ts` — subagent grep, sync fallback, subagent polling.
+**Status:** Code exists in `tool.ts` — subagent grep and polling.
 
 **What it does:** `ltm_search` — grep session JSONL files via subagent. No typed memories, no SQLite, no embeddings.
 

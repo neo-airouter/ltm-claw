@@ -9,6 +9,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 - Initial release
 - `ltm_search` tool: grep-based session retrieval via lightweight subagent
-- Config: `retrievalTimeoutSeconds`, `grepContextLines`, `workspaceDir`
-- Optional `retrievalModel`/`retrievalProvider` (nullish = gateway default)
+- Config: `retrievalTimeoutSeconds`, `workspaceDir`
 - Startup banner on plugin load
