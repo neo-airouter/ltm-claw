@@ -196,6 +196,8 @@ export function createLtmSearchTool(deps: LtmSearchDependencies, ctx?: LtmSearch
         `This subagent's session (exclude): ${childSessionKey}`;
 
       // Spawn subagent via OpenClaw runtime
+      // deliver=true → subagent completes before HTTP response is sent
+      // This avoids OpenClaw's tool-call timeout killing the request prematurely
       let runId: string;
       try {
         const result = await subagent.run({
@@ -203,7 +205,7 @@ export function createLtmSearchTool(deps: LtmSearchDependencies, ctx?: LtmSearch
           message: systemPrompt,
           extraSystemPrompt,
           lane: "subagent",
-          deliver: false,
+          deliver: true,  // blocks until subagent finishes
           idempotencyKey,
         });
         runId = result.runId;
@@ -224,36 +226,37 @@ export function createLtmSearchTool(deps: LtmSearchDependencies, ctx?: LtmSearch
         };
       }
 
-      // Poll for completion using subagent.waitForRun
-      const pollIntervalMs = 2_000;
-      const deadline = Date.now() + cfg.retrievalTimeoutSeconds * 1000;
+      // Wait for completion — subagent should be done since deliver=true
+      const waitResult = await subagent.waitForRun({
+        runId,
+        timeoutMs: cfg.retrievalTimeoutSeconds * 1000,
+      });
 
-      while (Date.now() < deadline) {
-        await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
-
-        const waitResult = await subagent.waitForRun({ runId, timeoutMs: pollIntervalMs + 1_000 });
-        if (waitResult.status !== "ok") {
-          // Done (ok/error/timeout)
-          const text = extractAssistantTextFromSession(sessionFile);
-          if (text) {
-            return { content: [{ type: "text", text }], details: input };
-          }
-          if (waitResult.status === "error") {
-            return {
-              content: [{ type: "text", text: `Search error: ${waitResult.error}` }],
-              details: input,
-            };
-          }
-          break;
+      if (waitResult.status === "ok") {
+        // Subagent finished — extract result from session file
+        const text = extractAssistantTextFromSession(sessionFile);
+        if (text) {
+          return { content: [{ type: "text", text }], details: input };
         }
+        // Session file empty even though run completed — try live messages
+        try {
+          const msgs = await subagent.getSessionMessages({ sessionKey: childSessionKey, limit: 5 });
+          const last = msgs.messages.filter((m: any) => m.message?.role === "assistant").at(-1);
+          if (last?.message?.content) {
+            const texts = last.message.content.filter((c: any) => c.type === "text").map((c: any) => c.text);
+            if (texts.length) return { content: [{ type: "text", text: texts.join("\n") }], details: input };
+          }
+        } catch { /* ignore */ }
       }
 
-      // Timed out or got result — try to extract from session file
-      const text = extractAssistantTextFromSession(sessionFile);
-      if (text) {
-        return { content: [{ type: "text", text }], details: input };
+      if (waitResult.status === "error") {
+        return {
+          content: [{ type: "text", text: `Search error: ${waitResult.error}` }],
+          details: input,
+        };
       }
 
+      // Timed out — subagent still running (API too slow)
       return {
         content: [
           {
