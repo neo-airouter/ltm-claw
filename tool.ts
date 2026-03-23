@@ -20,7 +20,7 @@ export interface LtmSearchConfig {
 }
 
 const DEFAULT_CONFIG = {
-  retrievalTimeoutSeconds: 60,
+  retrievalTimeoutSeconds: 120,
   workspaceDir: "/tmp/ltm-claw",
 };
 
