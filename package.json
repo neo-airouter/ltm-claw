@@ -1,7 +1,7 @@
 {
   "name": "@airouter.ch/ltm-claw",
   "version": "1.0.0",
-  "description": "Agent-managed long-term memory for OpenClaw. v1: session grep search. v2+: typed memories, hybrid search, knowledge graph.",
+  "description": "Long-term memory (LTM) access for OpenClaw without bloating session context (using subagents). v1: session grep search. v2+: typed memories, hybrid search, knowledge graph.",
   "type": "module",
   "main": "index.ts",
   "license": "MIT",
@@ -22,7 +22,9 @@
     "tool.ts",
     "startup-banner-log.ts",
     "retrieval.md",
+    "sidecar.png",
     "openclaw.plugin.json",
+    "tsconfig.json",
     "README.md",
     "LICENSE"
   ],
