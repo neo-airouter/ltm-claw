@@ -116,7 +116,7 @@
 
 ## Deferred / Unscheduled
 
-Discussed in SPEC.md §Open Questions but not yet assigned to a version.
+Not yet assigned to a version.
 
 - [ ] Bi-temporal model (when true vs when learned — v4+)
 - [ ] Agent rename migration (DB file rename)

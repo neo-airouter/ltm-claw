@@ -1,37 +1,54 @@
+<div align="center">
+
 # ltm-claw
 
-**Plugin for OpenClaw.** Agent-managed long-term memory. Local-only.
+<img src="sidecar.png" alt="ltm-claw" width="400">
 
-## Versioning
+<br/>
 
-| Version | What it does |
-|---------|--------------|
-| **v1** | `ltm_search` — grep session history via subagent. No schema, no embeddings. |
-| **v2** | Typed memories + hybrid search + relationships (SQLite + llama-server) |
-| **v3** | Graph traversal (`ltm_explore`) + reflection |
-| **v4** | Self-evolution, memory hygiene |
+Long-term memory (LTM) access for OpenClaw without bloating session context (using subagents).
 
-See `ROADMAP.md` for milestones.
+<br/>
 
-## Install — v1 (current)
+<a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=flat&labelColor=555" alt="License MIT"></a>
+<img src="https://img.shields.io/badge/v1-GA-yellow?style=flat&labelColor=555" alt="v1 GA">
+<img src="https://img.shields.io/badge/v2-In%20Progress-blue?style=flat&labelColor=555" alt="v2 In Progress">
+<img src="https://img.shields.io/badge/Zero%20Dependencies-v1Cyan?style=flat&labelColor=555" alt="Zero Dependencies v1">
+<img src="https://img.shields.io/badge/Local%20Only-purple?style=flat&labelColor=555" alt="Local Only">
+
+</div>
+
+---
+
+## Overview
+
+ltm-claw gives your OpenClaw agent persistent, queryable memory across sessions. It is installed as an OpenClaw plugin and exposes tools for storing and retrieving memories.
+
+**v1 (current):** grep-based session history search via subagent — no external dependencies.
+
+**v2 (coming):** Typed memories + hybrid BM25/vector search using a local llama-server embedding endpoint.
+
+**v3:** Graph traversal + reflection.
+
+**v4:** Self-evolution + memory hygiene.
+
+See `ROADMAP.md` for full milestones.
+
+---
+
+## Installation
 
 v1 has no external dependencies (no SQLite, no embeddings). Just the subagent grep pipeline.
 
-**Host requirements:** `python3` and `jq` must be available in the PATH. Install with `apt install python3 jq` (or equivalent).
-
-Use OpenClaw's plugin installer (recommended):
+**Host requirements:** `python3` and `jq` must be available in PATH.
 
 ```bash
 openclaw plugins install @airouter.ch/ltm-claw
 ```
 
-If you're running from a local OpenClaw checkout, use:
+## Configuration
 
-```bash
-pnpm openclaw plugins install @airouter.ch/ltm-claw
-```
-
-Configure in OpenClaw (`~/.openclaw/openclaw.json`):
+Defaults are set during installation in `~/.openclaw/openclaw.json`:
 
 ```json
 {
@@ -49,38 +66,24 @@ Configure in OpenClaw (`~/.openclaw/openclaw.json`):
 }
 ```
 
-Restart OpenClaw. The plugin creates `/tmp/ltm-claw` on first load. This is the subagent's scratch directory — kept empty so the subagent doesn't load any workspace files, keeping it fast.
+---
 
-## Install — v2 (future)
+## Tools
 
-v2 requires a local embedding service: llama-server with Qwen3-Embedding on port 8001. Config fields `embeddingUrl` and `embeddingModel` will be documented here when v2 is implemented.
+### `ltm_search`
+Search session history via grep + subagent.
 
-## v1 Tool
+---
 
-- `ltm_search` — search session history via grep + subagent
-
-## v2 Tools (not yet implemented)
-
-- `ltm_store` — save a typed memory (decision, correction, insight, fact, context)
-- `ltm_search` — hybrid BM25 + vector search
-- `ltm_connect` — link two memories with a relationship
-- `ltm_supersedes` — mark a new memory as replacing old ones
-
-## Storage
-
-- v1: no DB, just `/tmp/ltm-claw` scratch directory for the subagent
-- v2+: one SQLite DB per agent at `~/.openclaw/ltm-claw/<agentId>-memory-graph.db`
-- WAL mode enabled
-- Completely outside OpenClaw's own directories
-
-## Docs
+## Project docs
 
 | File | Purpose |
 |------|---------|
-| `README.md` | This file — install, quick start |
-| `SPEC.md` | Full specification — schema, tools, failure modes, decisions |
-| `ROADMAP.md` | Version milestones, each referencing SPEC sections |
+| `README.md` | This file — overview, install, tools |
+| `ROADMAP.md` | Version milestones |
 
-## References
+---
 
-See `SPEC.md §References` for research sources (Evo-Memory, Penfield, RedPlanet, Mem0, Zep, Supermemory, LoCoMo-Plus).
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
