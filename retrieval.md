@@ -18,27 +18,21 @@ Search the session files in `<sessionsDir>` for anything relevant to this query.
 
 ## Step 1 — Find Relevant Session Files
 
-```bash
-find "<sessionsDir>" -name "*.jsonl" \
-  -not -name '*.jsonl' | while read f; do
-    basename "$f" .jsonl | grep -v "^$(echo '<currentSessionKey>' | sed 's/[][.*^$+?{}()\\|]/\\&/g')" || echo "$f"
-  done | head -20
-```
-
-Or simpler — exclude by known problematic patterns:
+Capture the file list in a variable, then pass it directly to grep:
 
 ```bash
-# Exclude: current session key prefix (any !ltm- sub-sessions of current), and this subagent's own session
-find "<sessionsDir>" -name "*.jsonl" -mtime -<maxAgeDays> 2>/dev/null | \
+files=$(find "<sessionsDir>" \( -name "*.jsonl" -o -name "*.jsonl.reset.*" \) -mtime -<maxAgeDays> 2>/dev/null | \
   grep -v "$(echo '<currentSessionKey>' | sed 's/[][.*^$+?{}()\\|]/\\\&/g')" | \
   grep -v "$(basename '<thisSubagentSessionKey>')" | \
-  head -20
+  head -20)
 ```
 
 ## Step 2 — Search with grep
 
+Pass the file list directly — no stdin involved:
+
 ```bash
-grep -ril "<query>" $(cat /dev/stdin) 2>/dev/null
+grep -ril "<query>" $files 2>/dev/null
 ```
 
 ## Step 3 — Extract Relevant Entries
