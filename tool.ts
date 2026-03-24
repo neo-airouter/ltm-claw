@@ -38,10 +38,6 @@ function getConfig() {
   };
 }
 
-function getSessionsDir(agentId: string): string {
-  return path.join(process.env.HOME!, ".openclaw", "agents", agentId, "sessions");
-}
-
 // ─── OpenClaw subagent runtime interface (matches PluginRuntime.subagent) ──────
 
 interface SubagentRunParams {
