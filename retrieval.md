@@ -21,6 +21,7 @@ Search the session files in `<sessionsDir>` for anything relevant to this query.
 Capture the file list in a variable, then pass it directly to grep:
 
 ```bash
+set +H  # disable history expansion (prevents ! in session keys breaking sed)
 files=$(find "<sessionsDir>" \( -name "*.jsonl" -o -name "*.jsonl.reset.*" \) -mtime -<maxAgeDays> 2>/dev/null | \
   grep -v "$(echo '<currentSessionKey>' | sed 's/[][.*^$+?{}()\\|]/\\\&/g')" | \
   grep -v "$(basename '<thisSubagentSessionKey>')" | \
@@ -37,13 +38,13 @@ grep -ril "<query>" $files 2>/dev/null
 
 ## Step 3 — Extract Relevant Entries
 
-For each file with matches, extract entries containing the query:
+For each file with matches, extract entries where the **text content** (not thinking blocks) contains the query:
 
 ```bash
-jq -c 'select(.content // "" | test("<query>"; "i"))' <file.jsonl>
+jq -c 'select(.message.content | map(select(.type == "text") | .text // "") | join(" ") | test("<query>"; "i"))' <file.jsonl>
 ```
 
-Or if jq is not available, use Python:
+If jq is unavailable or fails, fall back to Python (searches full JSON):
 
 ```bash
 python3 -c "
@@ -59,7 +60,6 @@ for line in open('<file.jsonl>'):
             print(line)
     except: continue
 "
-```
 
 ## Step 4 — Summarize (DO NOT dump raw entries)
 

@@ -413,7 +413,17 @@ Research inputs used in this spec:
 
 ## Appendix: Failure Modes
 
-> Stress-tested by Night. 20 failure modes across storage, schema, embedding pipeline, search, and subagent layers. "🔴" = silent wrong results (agent won't notice), "🟡" = degradation, "🔴" = hard failure.
+> Stress-tested by Night. 22 failure modes across storage, schema, embedding pipeline, search, and subagent layers. "🔴" = silent wrong results (agent won't notice), "🟡" = degradation, "🔴" = hard failure.
+
+---
+
+### Fixed in v1 (2026-03-23)
+
+**A. `retrieval.md` Step 1→2 pipe broken (critical, always fails)** — Step 1 used `find | while read` which consumes stdin, then Step 2's `$(cat /dev/stdin)` received nothing. `grep` always got empty input.
+*Fix: capture file list in a shell variable (`files=$(find ...)`), pass directly to grep. No stdin, no temp file.*
+
+**B. Subagent announce step requires channel context** — `deliver: true` triggers an announce step that posts the result back to the requester's channel. In the dev gateway (no channels configured), this fails with "Channel is required (no configured channels detected)". In production gateways with channels, this works because the parent session has a channel.
+*Fix: use `deliver: false`, poll `waitForRun` + `getSessionMessages` directly. No announce step needed since we retrieve the subagent's session output manually.*
 
 ### 🔴 Silent Wrong Results (agent cannot detect)
 

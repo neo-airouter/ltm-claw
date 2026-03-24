@@ -211,8 +211,9 @@ export function createLtmSearchTool(deps: LtmSearchDependencies, ctx?: LtmSearch
         `This subagent's session (exclude): ${childSessionKey}`;
 
       // Spawn subagent via OpenClaw runtime
-      // deliver=true → subagent completes before HTTP response is sent
-      // This avoids OpenClaw's tool-call timeout killing the request prematurely
+      // deliver=false → subagent runs async; we poll waitForRun manually.
+      // This avoids the announce step (which requires channel context the subagent
+      // session doesn't have) and lets us retrieve results directly.
       let runId: string;
       try {
         const result = await subagent.run({
@@ -220,7 +221,7 @@ export function createLtmSearchTool(deps: LtmSearchDependencies, ctx?: LtmSearch
           message: systemPrompt,
           extraSystemPrompt,
           lane: "subagent",
-          deliver: true,  // blocks until subagent finishes; result announced to parent session
+          deliver: false,  // non-blocking; announce step skipped, we retrieve results manually
           idempotencyKey,
         });
         runId = result.runId;
