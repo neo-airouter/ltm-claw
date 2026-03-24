@@ -175,8 +175,8 @@ export function createLtmSearchTool(deps: LtmSearchDependencies, ctx?: LtmSearch
     name: "ltm_search",
     label: "LTM Claw",
     description:
-      "Search past session files for relevant context. Only searches sessions " +
-      "modified within maxAge days (default: 10). Use when asked about past " +
+      "Search past session files for relevant context — without bloating the current session. " +
+      "Only searches sessions modified within maxAge days (default: 10). Use when asked about past " +
       "conversations, prior work, or anything requiring context from earlier sessions.",
 
     parameters: LtmSearchSchema as unknown as TSchema,
