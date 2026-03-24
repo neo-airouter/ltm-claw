@@ -32,7 +32,7 @@ ltm-claw gives your OpenClaw agent persistent, queryable memory across sessions.
 
 **v4:** Self-evolution + memory hygiene.
 
-See `ROADMAP.md` for full milestones.
+See [ROADMAP.md](ROADMAP.md) for full milestones.
 
 ---
 
