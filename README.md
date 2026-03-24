@@ -6,7 +6,7 @@
 
 <br/>
 
-Long-term memory (LTM) access for OpenClaw without bloating session context (using subagents).
+Long-term memory (LTM) access for OpenClaw without bloating session context using subagents (sidecar).
 
 <br/>
 
@@ -75,12 +75,45 @@ Search session history via grep + subagent.
 
 ---
 
+## Usage
+
+`ltm_search` is triggered automatically when you ask about past conversations, prior work, or anything that would require context from earlier sessions. Examples:
+
+**"Hey, didn't we talk about Rickrolling someone last week?"**
+
+```
+## a3f9c812 (2026-03-18)
+
+Never gonna give you up — the session discussed deploying a Never Gonna Give You Up
+autoresponder as a mitigation for a specific trigger phrase. The decision was to flag
+it as low-priority幽默 rather than implement it as a production rule.
+```
+
+**"What did we decide on the Ultimate Answer again?"**
+
+```
+## 7b2d1e45 (2026-03-21)
+
+42. The session confirmed 42 as the agreed-upon answer, contingent on the universe
+not changing its numbering system. Further research into alternative numbering systems
+was deemed out of scope but noted for v3 graph traversal.
+```
+
+---
+
 ## Project docs
 
 | File | Purpose |
 |------|---------|
-| `README.md` | This file — overview, install, tools |
-| `ROADMAP.md` | Version milestones |
+| [README.md](README.md) | This file — overview, install, tools |
+| [ROADMAP.md](ROADMAP.md) | Version milestones |
+
+---
+
+## 💜 Sponsors
+
+[AI Router Switzerland](https://airouter.ch) — unlimited API access with flatrate pricing.
+Main sponsor of the infrastructure and research behind ltm-claw.
 
 ---
 
