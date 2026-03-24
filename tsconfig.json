@@ -13,5 +13,5 @@
     "resolveJsonModule": true
   },
   "include": ["index.ts", "tool.ts", "startup-banner-log.ts"],
-  "exclude": ["node_modules", "dist", "test"]
+  "exclude": ["node_modules", "dist", "./test"]
 }
