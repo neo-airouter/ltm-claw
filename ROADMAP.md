@@ -1,6 +1,6 @@
 # ltm-claw — ROADMAP
 
-> Each milestone is independently testable. Milestones reference SPEC.md sections.
+> Each milestone is independently testable.
 > Versions are major versions: v1 → v2 → v3 → v4.
 
 ---
@@ -17,7 +17,7 @@
 - [x] Update `openclaw.plugin.json` description and plugin id for v1
 - [x] Update `package.json` name and GitHub URLs
 - [x] Update `startup-banner-log.ts` log key
-- [ ] Verify plugin loads without errors in OpenClaw (manual step)
+- [x] Verify plugin loads without errors in OpenClaw (manual step)
 
 **v1.1 — README + Docs**
 - [x] `README.md` v1 install and version docs
@@ -44,7 +44,6 @@
 - [ ] `CHECK` constraints on `category` and `rel_type`
 - [ ] `content.length` cap (10,000 chars)
 - [ ] HTTP timeout on embedding fetch (10s)
-- [ ] SPEC §Storage, §Schema, §Tool Signatures, §Implementation Notes
 
 **Test:** Store a `decision` memory, verify it persists and appears in search.
 
@@ -53,7 +52,6 @@
 - [ ] `ltm_store.ts` — store tool with `supersedes_ids` atomicity
 - [ ] Embedding failures → `embedding_status: 'pending'`
 - [ ] Retry `pending→ready` DB update with its own retry loop
-- [ ] SPEC §ltm_store
 
 **Test:** Store 5 memories of different categories. Search returns all 5. Embedding service restart → memories still stored as `pending`, become `ready` after service restores.
 
@@ -66,7 +64,6 @@
 - [ ] Partial results → `status: "partial_results"`
 - [ ] Zero matches → `status: "no_matches"`
 - [ ] Subagent spawn failure → explicit error
-- [ ] SPEC §ltm_search
 
 **Test:** Store memories with specific content. Search for keywords. Kill embedding service → verify partial results mode.
 
@@ -74,7 +71,6 @@
 - [ ] `ltm_connect.ts` — relationship creation
 - [ ] `ltm_supersedes.ts` — explicit supersedes edges
 - [ ] `ltm_store` with `supersedes_ids` — atomic store + edge
-- [ ] SPEC §ltm_connect, §ltm_supersedes
 
 **Test:** Store a correction with `supersedes_ids`. Verify `relationships` array returned.
 
@@ -83,7 +79,6 @@
 - [ ] WAL checkpoint strategy (`wal_checkpoint(TRUNCATE)`)
 - [ ] Pending embed batch wrapped in explicit `BEGIN / COMMIT`
 - [ ] End-to-end integration test
-- [ ] SPEC §Architecture, §Error Handling
 
 **Test:** Full flow — store decisions, corrections, search, connect. Plugin loads without errors.
 
@@ -93,19 +88,16 @@
 
 ### v3.1 — Graph Traversal
 - [ ] `ltm_explore.ts` — BFS traversal from a memory
-- [ ] BFS thresholds: explore at 0.3, keep at 0.65 (production-derived, SPEC §Phase 2 Reference)
+- [ ] BFS thresholds: explore at 0.3, keep at 0.65
 - [ ] Relationship expansion
-- [ ] SPEC §Tool Signatures
 
 ### v3.2 — Reflection
 - [ ] `ltm_reflect.ts` — "what do I know about X, how has my understanding evolved?"
 - [ ] `ltm_should_reflect.ts` — cheap introspection hook
-- [ ] SPEC §Tool Signatures
 
 ### v3.3 — Temporal Model (Simplified)
 - [ ] `evolved_from` relationship use cases
 - [ ] Explicit `updated_at` vs `created_at` semantics documented
-- [ ] SPEC §Temporal Model: Simplified
 
 ---
 
