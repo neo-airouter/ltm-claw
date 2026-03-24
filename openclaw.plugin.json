@@ -1,0 +1,29 @@
+{
+  "id": "ltm-claw",
+  "uiHints": {
+    "retrievalTimeoutSeconds": {
+      "label": "Retrieval Timeout (seconds)",
+      "help": "How long the subagent has to complete the search"
+    },
+    "workspaceDir": {
+      "label": "Workspace Directory",
+      "help": "Clean directory the subagent works in; recreated on plugin load"
+    }
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "retrievalTimeoutSeconds": {
+        "type": "number",
+        "description": "Subagent timeout in seconds",
+        "default": 60
+      },
+      "workspaceDir": {
+        "type": "string",
+        "description": "Workspace directory for subagent; recreated on plugin load",
+        "default": "/tmp/ltm-claw"
+      }
+    }
+  }
+}
