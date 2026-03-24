@@ -10,7 +10,7 @@ const ltmSearchPlugin = {
   id: "ltm-claw",
   name: "LTM Claw",
   description:
-    "Agent-managed long-term memory — session grep search (v1). v2+: typed memories, hybrid search, knowledge graph.",
+    "Long-term memory (LTM) access for OpenClaw without bloating session context (using subagents). v1: session grep search.",
 
   configSchema: {
     parse(value: unknown) {
