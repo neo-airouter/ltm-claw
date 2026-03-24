@@ -23,7 +23,7 @@ Capture the file list in a variable, then pass it directly to grep:
 ```bash
 files=$(find "<sessionsDir>" \( -name "*.jsonl" -o -name "*.jsonl.reset.*" \) -mtime -<maxAgeDays> 2>/dev/null | \
   grep -v "$(echo '<currentSessionKey>' | sed 's/[][.*^$+?{}()\\|]/\\\&/g')" | \
-  grep -v "$(basename '<thisSubagentSessionKey>')" | \
+  grep -v "$(basename '<thisSubagentSessionKey>').jsonl" | \
   head -20)
 ```
 
