@@ -21,7 +21,6 @@ Search the session files in `<sessionsDir>` for anything relevant to this query.
 Capture the file list in a variable, then pass it directly to grep:
 
 ```bash
-set +H  # disable history expansion (prevents ! in session keys breaking sed)
 files=$(find "<sessionsDir>" \( -name "*.jsonl" -o -name "*.jsonl.reset.*" \) -mtime -<maxAgeDays> 2>/dev/null | \
   grep -v "$(echo '<currentSessionKey>' | sed 's/[][.*^$+?{}()\\|]/\\\&/g')" | \
   grep -v "$(basename '<thisSubagentSessionKey>')" | \
