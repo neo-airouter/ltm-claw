@@ -51,10 +51,11 @@ const ltmSearchPlugin = {
       return createLtmSearchTool({ subagent, sessionsDir, agentId }, ctx);
     });
 
-    logStartupBannerOnce(
-      "[plugins/ltm-claw] v1 loaded — session search via ltm_search",
-      api.logger,
-    );
+    logStartupBannerOnce({
+      key: "plugin-loaded",
+      log: (msg) => api.logger?.info(msg),
+      message: "[plugins/ltm-claw] v1 loaded — session search via ltm_search",
+    });
   },
 };
 

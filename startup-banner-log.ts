@@ -1,13 +1,13 @@
 const LOG_KEY = Symbol.for("ltm-claw/startup-logged");
 
-type Logger = { info: (msg: string) => void };
-
-export function logStartupBannerOnce(msg: string, logger?: Logger): void {
-  if ((globalThis as Record<symbol, boolean>)[LOG_KEY]) return;
-  (globalThis as Record<symbol, boolean>)[LOG_KEY] = true;
-  if (logger) {
-    logger.info(msg);
-  } else {
-    console.log(msg);
-  }
+/** Emit a startup/config banner only once per process. */
+export function logStartupBannerOnce(params: {
+  key?: string | symbol;
+  log: (message: string) => void;
+  message: string;
+}): void {
+  const k = params.key ?? LOG_KEY;
+  if ((globalThis as Record<symbol, boolean>)[k]) return;
+  (globalThis as Record<symbol, boolean>)[k] = true;
+  params.log(params.message);
 }
