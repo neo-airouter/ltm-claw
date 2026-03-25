@@ -1,6 +1,6 @@
 {
   "name": "@airouter.ch/ltm-claw",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Long-term memory (LTM) access for OpenClaw without bloating session context (using subagents). v1: session grep search. v2+: typed memories, hybrid search, knowledge graph.",
   "type": "module",
   "main": "index.ts",
